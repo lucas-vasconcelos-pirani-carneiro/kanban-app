@@ -50,7 +50,13 @@ O projeto adota uma arquitetura em camadas inspirada no padrão MVC:
 Cadastro e Login por e-mail e senha. 
   - As senhas são armazenadas com hash (bcrypt ou hashlib), nunca em texto puro.
 
-## Como executar
+## Configuração do Ambiente
+
+1. Crie o ambiente virtual: `python3 -m venv .venv`
+2. Ative o ambiente: `source .venv/bin/activate` (Linux/Mac) ou `.venv\Scripts\activate` (Windows)
+3. Instale as dependências: `pip install -r requirements.txt`
+
+## Como Executar
 
 1. Instale as dependências:
 
