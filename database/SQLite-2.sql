@@ -1,0 +1,63 @@
+PRAGMA foreign_keys = ON;
+
+CREATE TABLE USUARIO (
+    id_user INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    senha VARCHAR(255) NOT NULL
+);
+
+CREATE TABLE PROJETO (
+    id_proj INTEGER PRIMARY KEY AUTOINCREMENT,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    data_criacao DATE NOT NULL
+);
+
+CREATE TABLE MEMBRO_PROJETO (
+    id_user INTEGER,
+    id_proj INTEGER,
+    gerente BOOLEAN DEFAULT 0,
+    PRIMARY KEY (id_user, id_proj),
+    FOREIGN KEY (id_user) REFERENCES USUARIO(id_user) ON DELETE CASCADE,
+    FOREIGN KEY (id_proj) REFERENCES PROJETO(id_proj) ON DELETE CASCADE
+);
+
+CREATE TABLE QUADRO (
+    id_quadro INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_proj INTEGER NOT NULL,
+    nome VARCHAR(50) NOT NULL,
+    FOREIGN KEY (id_proj) REFERENCES PROJETO(id_proj) ON DELETE CASCADE
+);
+
+CREATE TABLE COLUNA (
+    id_coluna INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_quadro INTEGER NOT NULL,
+    nome VARCHAR(30) NOT NULL,
+    limite_col INTEGER CHECK (limite_col > 0 OR limite_col IS NULL),
+    FOREIGN KEY (id_quadro) REFERENCES QUADRO(id_quadro) ON DELETE CASCADE
+);
+
+CREATE TABLE RAIA (
+    id_raia INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_quadro INTEGER NOT NULL,
+    nome VARCHAR(50) NOT NULL,
+    FOREIGN KEY (id_quadro) REFERENCES QUADRO(id_quadro) ON DELETE CASCADE
+);
+
+CREATE TABLE CARTAO (
+    id_cartao INTEGER PRIMARY KEY AUTOINCREMENT,
+    id_coluna INTEGER NOT NULL,
+    id_raia INTEGER,
+    id_user_responsavel INTEGER NOT NULL,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    prioridade VARCHAR(20) CHECK (prioridade IN ('baixa', 'media', 'alta', 'urgente')),
+    data_limite TIMESTAMP NOT NULL,
+    data_criacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    data_entrada_wip TIMESTAMP,
+    data_conclusao TIMESTAMP,
+    FOREIGN KEY (id_coluna) REFERENCES COLUNA(id_coluna) ON DELETE RESTRICT,
+    FOREIGN KEY (id_raia) REFERENCES RAIA(id_raia) ON DELETE SET NULL,
+    FOREIGN KEY (id_user_responsavel) REFERENCES USUARIO(id_user) ON DELETE RESTRICT
+);
