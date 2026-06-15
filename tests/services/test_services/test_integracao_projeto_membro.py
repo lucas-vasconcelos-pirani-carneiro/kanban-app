@@ -75,8 +75,12 @@ def test_fluxo_criacao_projeto_e_adicao_membro(banco_de_teste_integracao):
 
 
     # Simulando o Marcelo (gerente) adicionando um colega de grupo ao quadro
-    srv_membro.adicionar_membro(id_user=id_colega, id_proj=id_proj_criado, gerente=False)
-
+    srv_membro.adicionar_membro(
+        id_user_solicitante=id_marcelo, 
+        id_user_novo=id_colega, 
+        id_proj=id_proj_criado, 
+        gerente=False
+    )
 
     # Verifica se o colega entrou com a permissão correta (não-gerente)
     membro_novo = srv_membro.obter_membro(id_user=id_colega, id_proj=id_proj_criado)

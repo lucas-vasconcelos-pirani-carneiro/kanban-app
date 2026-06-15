@@ -64,8 +64,6 @@ class MembroProjetoService:
         # 4. Executa a alteração no repositório
         self.repository.atualizar_permissao(id_user_alvo, id_proj, novo_status_gerente)
 
-        self.repository.atualizar_permissao(id_user, id_proj, gerente)
-
     def remover_membro(self, id_user_solicitante: int, id_user_alvo: int, id_proj: int):
         # 1. BLINDAGEM: Apenas gerente pode remover alguém
         self._verificar_permissao_gerente(id_user_solicitante, id_proj)
