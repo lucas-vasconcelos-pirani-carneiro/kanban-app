@@ -1,6 +1,6 @@
 import customtkinter as ctk
 
-def populate_login_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_frame) -> None:
+def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_frame) -> None:
     frame_cadastro.grid_rowconfigure(7, weight=1)
 
     label_cadastro = ctk.CTkLabel(

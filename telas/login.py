@@ -1,6 +1,6 @@
 import customtkinter as ctk
 
-def populate_register_screen(frame_login: ctk.CTkFrame, show_frame, main_frame) -> None:
+def populate_login_screen(frame_login: ctk.CTkFrame, show_frame, main_frame, frame_dashboard) -> None:
     #frame_login.grid_rowconfigure(3, weight=1)
 
     label_login = ctk.CTkLabel(
@@ -56,6 +56,7 @@ def populate_register_screen(frame_login: ctk.CTkFrame, show_frame, main_frame) 
         fg_color="#7B4DFF",
         hover_color="#6738E6",
         text_color="#FFFFFF",
+        command=lambda: show_frame(frame_dashboard),
     )
     botao_confirma.grid(row=7, column=0, pady=(0, 8))
 

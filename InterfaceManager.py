@@ -1,7 +1,8 @@
 import customtkinter as ctk
 from telas.main import populate_main_screen
-from telas.login import populate_register_screen
-from telas.cadastro import populate_login_screen
+from telas.cadastro import populate_register_screen
+from telas.login import populate_login_screen
+from telas.dashboard import populate_dashboard_screen
 
 def show_frame(frame: ctk.CTkFrame) -> None:
     frame.tkraise()
@@ -29,16 +30,18 @@ def create_app() -> ctk.CTk:
     main_frame = ctk.CTkFrame(app, corner_radius=18)
     frame_cadastro = ctk.CTkFrame(app, corner_radius=18)
     frame_login = ctk.CTkFrame(app, corner_radius=18)
+    frame_dashboard = ctk.CTkFrame(app, corner_radius=18)
 
     # Configura os frames
-    for frame in (main_frame, frame_cadastro, frame_login):
+    for frame in (main_frame, frame_cadastro, frame_login, frame_dashboard):
         frame.grid(row=0, column=0, padx=24, pady=24, sticky="nsew")
         frame.grid_columnconfigure(0, weight=1)
 
     # Preenche os frames com componentes da interface
-    populate_main_screen(main_frame, show_frame, frame_cadastro, frame_login)
+    populate_main_screen(main_frame, show_frame, frame_login, frame_cadastro)
+    populate_dashboard_screen(frame_dashboard, show_frame, main_frame)
     populate_register_screen(frame_cadastro, show_frame, main_frame)
-    populate_login_screen(frame_login, show_frame, main_frame)
+    populate_login_screen(frame_login, show_frame, main_frame, frame_dashboard)
 
     show_frame(main_frame)
 
