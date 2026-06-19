@@ -1,7 +1,12 @@
 import customtkinter as ctk
+from src.repositories.usuario_repository import UsuarioRepository
+from src.services.usuario_service import UsuarioService
+
+repository = UsuarioRepository()
+service = UsuarioService(repository)
 
 def populate_login_screen(frame_login: ctk.CTkFrame, show_frame, main_frame, frame_dashboard) -> None:
-    #frame_login.grid_rowconfigure(3, weight=1)
+    frame_login.grid_columnconfigure(0, weight=1)
 
     label_login = ctk.CTkLabel(
         frame_login,
@@ -10,7 +15,6 @@ def populate_login_screen(frame_login: ctk.CTkFrame, show_frame, main_frame, fra
     )
     label_login.grid(row=0, column=0, pady=(12, 8), padx=18, sticky="ew")
 
-    # Label do e-mail e campo de entrada
     label_email = ctk.CTkLabel(
         frame_login,
         text="Email",
@@ -26,16 +30,14 @@ def populate_login_screen(frame_login: ctk.CTkFrame, show_frame, main_frame, fra
         height=35,
     )
     campo_email.grid(row=2, column=0, padx=18, pady=(0, 8), sticky="ew")
-    #email = campo_email.get()
 
-    # Label da senha e campo de entrada
     label_senha = ctk.CTkLabel(
         frame_login,
         text="Senha",
         font=ctk.CTkFont(size=12),
         text_color="#D0D0D0",
     )
-    label_senha.grid(row=5, column=0, padx=18, pady=(0, 2), sticky="w")
+    label_senha.grid(row=3, column=0, padx=18, pady=(0, 2), sticky="w")
 
     campo_senha = ctk.CTkEntry(
         frame_login,
@@ -44,23 +46,43 @@ def populate_login_screen(frame_login: ctk.CTkFrame, show_frame, main_frame, fra
         height=35,
         show="•",
     )
-    campo_senha.grid(row=6, column=0, padx=18, pady=(0, 10), sticky="ew")
-    #senha = campo_senha.get()
+    campo_senha.grid(row=4, column=0, padx=18, pady=(0, 10), sticky="ew")
 
-    # Botão de confirmação
+    label_erro = ctk.CTkLabel(
+        frame_login,
+        text="",
+        font=ctk.CTkFont(size=11),
+        text_color="#FF5555",
+    )
+    label_erro.grid(row=5, column=0, padx=18, pady=(0, 6))
+
+    def realizar_login():
+        email = campo_email.get().strip()
+        senha = campo_senha.get()
+        label_erro.configure(text="")
+
+        try:
+            usuario = service.autenticar_usuario(email, senha)
+            frame_dashboard.usuario_logado = usuario
+            campo_email.delete(0, "end")
+            campo_senha.delete(0, "end")
+            show_frame(frame_dashboard)
+        except ValueError as e:
+            label_erro.configure(text=str(e))
+
     botao_confirma = ctk.CTkButton(
         frame_login,
-        text="Confirmar",
+        text="Entrar",
         width=150,
         height=42,
         fg_color="#7B4DFF",
         hover_color="#6738E6",
         text_color="#FFFFFF",
-        command=lambda: show_frame(frame_dashboard),
+        command=realizar_login,
     )
-    botao_confirma.grid(row=7, column=0, pady=(0, 8))
+    botao_confirma.grid(row=6, column=0, pady=(0, 8))
 
-    register_back_button = ctk.CTkButton(
+    botao_voltar = ctk.CTkButton(
         frame_login,
         text="Voltar",
         width=150,
@@ -69,5 +91,4 @@ def populate_login_screen(frame_login: ctk.CTkFrame, show_frame, main_frame, fra
         hover_color="#6738E6",
         command=lambda: show_frame(main_frame),
     )
-    register_back_button.grid(row=8, column=0, pady=(0, 12))
-
+    botao_voltar.grid(row=7, column=0, pady=(0, 12))

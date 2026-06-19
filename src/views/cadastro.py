@@ -1,7 +1,12 @@
 import customtkinter as ctk
+from src.repositories.usuario_repository import UsuarioRepository
+from src.services.usuario_service import UsuarioService
+
+repository = UsuarioRepository()
+service = UsuarioService(repository)
 
 def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_frame) -> None:
-    frame_cadastro.grid_rowconfigure(7, weight=1)
+    frame_cadastro.grid_columnconfigure(0, weight=1)
 
     label_cadastro = ctk.CTkLabel(
         frame_cadastro,
@@ -10,7 +15,6 @@ def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_fram
     )
     label_cadastro.grid(row=0, column=0, pady=(28, 20), padx=18, sticky="ew")
 
-    # Label do e-mail e campo de entrada
     label_email = ctk.CTkLabel(
         frame_cadastro,
         text="Email",
@@ -26,9 +30,7 @@ def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_fram
         height=35,
     )
     campo_email.grid(row=2, column=0, padx=18, pady=(0, 12), sticky="ew")
-    #email = campo_email.get()
 
-    # Label do nome de usuário e campo de entrada
     label_usuario = ctk.CTkLabel(
         frame_cadastro,
         text="Nome de usuário",
@@ -44,9 +46,7 @@ def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_fram
         height=35,
     )
     campo_usuario.grid(row=4, column=0, padx=18, pady=(0, 12), sticky="ew")
-    #usuario = campo_usuario.get()
 
-    # Label da senha e campo de entrada
     label_senha = ctk.CTkLabel(
         frame_cadastro,
         text="Senha",
@@ -62,10 +62,41 @@ def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_fram
         height=35,
         show="•",
     )
-    campo_senha.grid(row=6, column=0, padx=18, pady=(0, 20), sticky="ew")
-    #senha = campo_senha.get()
+    campo_senha.grid(row=6, column=0, padx=18, pady=(0, 12), sticky="ew")
 
-    # Botão de confirmação
+    label_erro = ctk.CTkLabel(
+        frame_cadastro,
+        text="",
+        font=ctk.CTkFont(size=11),
+        text_color="#FF5555",
+    )
+    label_erro.grid(row=7, column=0, padx=18, pady=(0, 6))
+
+    label_sucesso = ctk.CTkLabel(
+        frame_cadastro,
+        text="",
+        font=ctk.CTkFont(size=11),
+        text_color="#55FF55",
+    )
+    label_sucesso.grid(row=8, column=0, padx=18, pady=(0, 6))
+
+    def realizar_cadastro():
+        email = campo_email.get().strip()
+        nome = campo_usuario.get().strip()
+        senha = campo_senha.get()
+        label_erro.configure(text="")
+        label_sucesso.configure(text="")
+
+        try:
+            service.criar_usuario(nome=nome, email=email, senha_texto_puro=senha)
+            campo_email.delete(0, "end")
+            campo_usuario.delete(0, "end")
+            campo_senha.delete(0, "end")
+            label_sucesso.configure(text="Cadastro realizado com sucesso!")
+            frame_cadastro.after(2000, lambda: show_frame(main_frame))
+        except ValueError as e:
+            label_erro.configure(text=str(e))
+
     botao_confirma = ctk.CTkButton(
         frame_cadastro,
         text="Confirmar",
@@ -74,10 +105,10 @@ def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_fram
         fg_color="#7B4DFF",
         hover_color="#6738E6",
         text_color="#FFFFFF",
+        command=realizar_cadastro,
     )
-    botao_confirma.grid(row=7, column=0, pady=(0, 12))
+    botao_confirma.grid(row=9, column=0, pady=(0, 12))
 
-    # Botão de voltar à tela inicial
     botao_voltar = ctk.CTkButton(
         frame_cadastro,
         text="Voltar",
@@ -87,5 +118,4 @@ def populate_register_screen(frame_cadastro: ctk.CTkFrame, show_frame, main_fram
         hover_color="#6738E6",
         command=lambda: show_frame(main_frame),
     )
-    botao_voltar.grid(row=8, column=0, pady=(0, 28))
-
+    botao_voltar.grid(row=10, column=0, pady=(0, 28))
