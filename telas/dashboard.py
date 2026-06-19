@@ -1,4 +1,3 @@
-from PIL import Image
 import customtkinter as ctk
 
 # Cards de quadros da dashboard
@@ -141,7 +140,16 @@ def add_card(frame_dashboard: ctk.CTkFrame, titulo_card: str) -> None:
         widget.bind("<Button-1>", on_card_click)
 
 def click_card(titulo_card: str, frame_dashboard: ctk.CTkFrame) -> None:
+    """
+    Handles card click by opening the board screen.
+    
+    Args:
+        titulo_card: The name of the board/card clicked
+        frame_dashboard: The dashboard frame (contains references to show_frame)
+    """
     print(f"Card clicado: {titulo_card}")
+    # Navigate to board screen with the board name
+    frame_dashboard.show_frame("board", board_name=titulo_card)
 
 def click_config(titulo_card: str) -> None:
     print(f"Configurações do card clicadas: {titulo_card}")
@@ -153,4 +161,3 @@ def criar_quadro(frame_dashboard: ctk.CTkFrame) -> None:
     nome_novo_quadro = f"Novo Quadro {len(cards) + 1}"
     cards.append(nome_novo_quadro)
     add_card(frame_dashboard, nome_novo_quadro)
-    
