@@ -63,4 +63,23 @@ class ProjetoRepository:
         with closing(self._conectar()) as conexao:
             with conexao:
                 cursor = conexao.cursor()
+                # Deleta cartões dentro das colunas dos quadros do projeto
+                cursor.execute("""
+                    DELETE FROM CARTAO WHERE id_coluna IN (
+                        SELECT id_coluna FROM COLUNA WHERE id_quadro IN (
+                            SELECT id_quadro FROM QUADRO WHERE id_proj = ?
+                        )
+                    )
+                """, (id_proj,))
+                # Deleta colunas dos quadros do projeto
+                cursor.execute("""
+                    DELETE FROM COLUNA WHERE id_quadro IN (
+                        SELECT id_quadro FROM QUADRO WHERE id_proj = ?
+                    )
+                """, (id_proj,))
+                # Deleta quadros do projeto
+                cursor.execute("DELETE FROM QUADRO WHERE id_proj = ?", (id_proj,))
+                # Deleta membros do projeto
+                cursor.execute("DELETE FROM MEMBRO_PROJETO WHERE id_proj = ?", (id_proj,))
+                # Deleta o projeto
                 cursor.execute("DELETE FROM PROJETO WHERE id_proj = ?", (id_proj,))
