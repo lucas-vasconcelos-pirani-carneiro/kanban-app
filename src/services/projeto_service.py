@@ -56,5 +56,4 @@ class ProjetoService:
         self.repository.atualizar(projeto_existente)
 
     def excluir_projeto(self, id_proj: int):
-
         self.repository.deletar(id_proj)
