@@ -83,6 +83,7 @@ def carregar_kanban(frame_kanban: ctk.CTkFrame, quadro, frame_quadros) -> None:
     frame_kanban.frame_quadros = frame_quadros
     frame_kanban.usuario_logado = frame_quadros.frame_dashboard.usuario_logado
     frame_kanban.label_titulo.configure(text=quadro.nome)
+    frame_kanban.ordem_colunas = None  # reseta a ordem ao entrar num quadro novo
     _renderizar_colunas(frame_kanban)
 
 
@@ -105,9 +106,85 @@ def _renderizar_colunas(frame_kanban: ctk.CTkFrame) -> None:
         ).pack(pady=40, padx=20)
         return
 
-    for coluna in colunas:
+    # Se existe uma ordem personalizada, respeita ela
+    if hasattr(frame_kanban, 'ordem_colunas') and frame_kanban.ordem_colunas:
+        mapa = {c.id_coluna: c for c in colunas}
+        # Garante que colunas novas que não estão na ordem ainda sejam incluídas
+        ids_conhecidos = [i for i in frame_kanban.ordem_colunas if i in mapa]
+        ids_novos = [c.id_coluna for c in colunas if c.id_coluna not in frame_kanban.ordem_colunas]
+        frame_kanban.ordem_colunas = ids_conhecidos + ids_novos
+        colunas_ordenadas = [mapa[i] for i in frame_kanban.ordem_colunas]
+    else:
+        colunas_ordenadas = colunas
+
+    for coluna in colunas_ordenadas:
         _criar_widget_coluna(frame_kanban, coluna)
 
+def _mover_coluna(coluna, frame_kanban: ctk.CTkFrame, direcao: int) -> None:
+    # Inicializa a lista de ordem se ainda não existir
+    if not hasattr(frame_kanban, 'ordem_colunas') or frame_kanban.ordem_colunas is None:
+        colunas = coluna_service.listar_colunas_do_quadro(frame_kanban.quadro_atual.id_quadro)
+        frame_kanban.ordem_colunas = [c.id_coluna for c in colunas]
+
+    ids = frame_kanban.ordem_colunas
+
+    if coluna.id_coluna not in ids:
+        return
+
+    idx_atual = ids.index(coluna.id_coluna)
+    idx_novo = idx_atual + direcao
+
+    if idx_novo < 0 or idx_novo >= len(ids):
+        return
+
+    # Troca as posições na lista de ordem
+    ids[idx_atual], ids[idx_novo] = ids[idx_novo], ids[idx_atual]
+
+    # Re-renderiza respeitando a nova ordem
+    _renderizar_colunas(frame_kanban)
+
+
+def _mover_cartao(cartao, coluna_atual, frame_kanban: ctk.CTkFrame, direcao: int) -> None:
+    """Move o cartão para a coluna anterior (-1) ou seguinte (+1)."""
+    colunas = coluna_service.listar_colunas_do_quadro(frame_kanban.quadro_atual.id_quadro)
+    ids = [c.id_coluna for c in colunas]
+
+    if coluna_atual.id_coluna not in ids:
+        return
+
+    idx_atual = ids.index(coluna_atual.id_coluna)
+    idx_novo = idx_atual + direcao
+
+    if idx_novo < 0 or idx_novo >= len(ids):
+        return  # já está na borda
+
+    coluna_destino = colunas[idx_novo]
+
+    try:
+        cartao_service.mover_cartao(
+            id_cartao=cartao.id_cartao,
+            novo_id_coluna=coluna_destino.id_coluna
+        )
+        _renderizar_colunas(frame_kanban)
+    except ValueError as e:
+        # WIP limit atingido — mostra um aviso temporário
+        _mostrar_aviso_wip(frame_kanban, str(e))
+
+
+def _mostrar_aviso_wip(frame_kanban: ctk.CTkFrame, mensagem: str) -> None:
+    """Exibe um banner de aviso de WIP no topo do kanban por 3 segundos."""
+    aviso = ctk.CTkLabel(
+        frame_kanban,
+        text=f"⚠️ {mensagem}",
+        font=("Arial", 12, "bold"),
+        fg_color="#FF9800",
+        text_color="white",
+        corner_radius=8,
+        padx=12,
+        pady=6
+    )
+    aviso.place(relx=0.5, rely=0.08, anchor="center")
+    frame_kanban.after(3000, aviso.destroy)
 
 def _criar_widget_coluna(frame_kanban: ctk.CTkFrame, coluna) -> None:
     cartoes = cartao_service.cartao_repo.listar_por_coluna(coluna.id_coluna)
@@ -123,10 +200,9 @@ def _criar_widget_coluna(frame_kanban: ctk.CTkFrame, coluna) -> None:
     frame_col.pack(side="left", fill="y", padx=8, pady=4, anchor="n")
     frame_col.pack_propagate(False)
 
-    # Usa grid internamente para controlar expansão
-    frame_col.grid_rowconfigure(0, weight=0)  # cabeçalho fixo
-    frame_col.grid_rowconfigure(1, weight=1)  # cartões expandem
-    frame_col.grid_rowconfigure(2, weight=0)  # botão fixo
+    frame_col.grid_rowconfigure(0, weight=0)
+    frame_col.grid_rowconfigure(1, weight=1)
+    frame_col.grid_rowconfigure(2, weight=0)
     frame_col.grid_columnconfigure(0, weight=1)
 
     # Cabeçalho — linha 0
@@ -153,18 +229,43 @@ def _criar_widget_coluna(frame_kanban: ctk.CTkFrame, coluna) -> None:
         text_color="#333333"
     ).pack(side="left", padx=(6, 0))
 
+    # Botões de reordenação e config no lado direito do cabeçalho
     ctk.CTkButton(
         frame_cab,
         text="⚙️",
-        width=28, height=28,
-        font=("Arial", 14),
+        width=26, height=26,
+        font=("Arial", 13),
         fg_color="transparent",
         hover_color="#DDDDDD",
         text_color="#666666",
         command=lambda c=coluna: abrir_config_coluna(c, frame_kanban)
-    ).pack(side="right")
+    ).pack(side="right", padx=(2, 0))
 
-    # Área scrollável dos cartões — linha 1 (expande)
+    ctk.CTkButton(
+        frame_cab,
+        text="▶",
+        width=30, height=30,
+        font=("Arial", 16, "bold"),
+        fg_color="#DDDDDD",
+        hover_color="#BBBBBB",
+        text_color="#444444",
+        corner_radius=6,
+        command=lambda c=coluna: _mover_coluna(c, frame_kanban, direcao=1)
+    ).pack(side="right", padx=(2, 0))
+
+    ctk.CTkButton(
+        frame_cab,
+        text="◀",
+        width=30, height=30,
+        font=("Arial", 16, "bold"),
+        fg_color="#DDDDDD",
+        hover_color="#BBBBBB",
+        text_color="#444444",
+        corner_radius=6,
+        command=lambda c=coluna: _mover_coluna(c, frame_kanban, direcao=-1)
+    ).pack(side="right", padx=(2, 0))
+
+    # Área scrollável dos cartões — linha 1
     frame_cartoes = ctk.CTkScrollableFrame(
         frame_col,
         fg_color="transparent",
@@ -175,7 +276,7 @@ def _criar_widget_coluna(frame_kanban: ctk.CTkFrame, coluna) -> None:
     for cartao in cartoes:
         _criar_widget_cartao(frame_cartoes, cartao, coluna, frame_kanban)
 
-    # Botão adicionar cartão — linha 2 (fixo na base)
+    # Botão adicionar cartão — linha 2
     ctk.CTkButton(
         frame_col,
         text="+ Cartão",
@@ -185,6 +286,7 @@ def _criar_widget_coluna(frame_kanban: ctk.CTkFrame, coluna) -> None:
         hover_color="#6738E6",
         command=lambda c=coluna: abrir_dialog_criar_cartao(c, frame_kanban)
     ).grid(row=2, column=0, sticky="ew", padx=8, pady=(4, 8))
+
 
 def _criar_widget_cartao(frame_cartoes, cartao, coluna, frame_kanban) -> None:
     cor = CORES_PRIORIDADE.get(cartao.prioridade, "#999999")
@@ -228,9 +330,8 @@ def _criar_widget_cartao(frame_cartoes, cartao, coluna, frame_kanban) -> None:
 
     # Corpo do cartão
     frame_info = ctk.CTkFrame(frame_cartao, fg_color="transparent")
-    frame_info.pack(fill="x", padx=8, pady=(2, 6))
+    frame_info.pack(fill="x", padx=8, pady=(2, 4))
 
-    # Descrição (se houver)
     if cartao.descricao and cartao.descricao.strip():
         ctk.CTkLabel(
             frame_info,
@@ -256,7 +357,6 @@ def _criar_widget_cartao(frame_cartoes, cartao, coluna, frame_kanban) -> None:
         text_color="#666666"
     ).pack(anchor="w")
 
-    # Responsável
     try:
         responsavel = usuario_service.obter_usuario(cartao.id_user_responsavel)
         nome_responsavel = responsavel.nome
@@ -269,6 +369,34 @@ def _criar_widget_cartao(frame_cartoes, cartao, coluna, frame_kanban) -> None:
         font=("Arial", 10),
         text_color="#666666"
     ).pack(anchor="w")
+
+    # Rodapé do cartão com setas para mover entre colunas
+    frame_rodape = ctk.CTkFrame(frame_cartao, fg_color="transparent")
+    frame_rodape.pack(fill="x", padx=8, pady=(2, 6))
+
+    ctk.CTkButton(
+        frame_rodape,
+        text="◀",
+        width=36, height=28,
+        font=("Arial", 15, "bold"),
+        fg_color="#DDDDDD",
+        hover_color="#BBBBBB",
+        text_color="#444444",
+        corner_radius=6,
+        command=lambda c=cartao, col=coluna: _mover_cartao(c, col, frame_kanban, direcao=-1)
+    ).pack(side="left")
+
+    ctk.CTkButton(
+        frame_rodape,
+        text="▶",
+        width=36, height=28,
+        font=("Arial", 15, "bold"),
+        fg_color="#DDDDDD",
+        hover_color="#BBBBBB",
+        text_color="#444444",
+        corner_radius=6,
+        command=lambda c=cartao, col=coluna: _mover_cartao(c, col, frame_kanban, direcao=1)
+    ).pack(side="right")
 
 # Máscara de data
 
