@@ -64,14 +64,30 @@ class CartaoService:
         cartao = self.obter_cartao(id_cartao)
         
         if cartao.id_coluna == novo_id_coluna:
-            return # Já está na coluna certa
+            return # Já está na coluna correta
             
-        # 1. Valida WIP da nova coluna
+        # 1. Valida WIP da coluna de destino
         self._verificar_wip_limite(novo_id_coluna)
         
-        # Opcional: Aqui poderíamos definir data_entrada_wip ou data_conclusao 
-        # baseado no nome ou tipo da coluna nova
+        coluna_destino = self.coluna_repo.buscar_por_id(novo_id_coluna)
+        nome_col_lower = coluna_destino.nome.lower()
+        agora = datetime.now().isoformat()
         
+        # 1: Se o cartão entrar em uma coluna de trabalho (WIP) e não tiver data inicial, inicia o Cycle Time
+        if "backlog" not in nome_col_lower and "concluido" not in nome_col_lower and "done" not in nome_col_lower:
+            if not cartao.data_entrada_wip:
+                cartao.data_entrada_wip = agora
+                
+        # 2: Se entrar na coluna de finalização, encerra o ciclo (Lead Time e Cycle Time)
+        if "concluido" in nome_col_lower or "done" in nome_col_lower:
+            cartao.data_conclusao = agora
+            # Proteção: se o cartão pulou direto do backlog para o concluído, preenche o WIP com a criação
+            if not cartao.data_entrada_wip:
+                cartao.data_entrada_wip = cartao.data_criacao
+        else:
+            # 3: Se o cartão for movido de volta do Concluído para o Doing, limpa a data de conclusão
+            cartao.data_conclusao = None
+            
         cartao.id_coluna = novo_id_coluna
         self.cartao_repo.atualizar(cartao)
 

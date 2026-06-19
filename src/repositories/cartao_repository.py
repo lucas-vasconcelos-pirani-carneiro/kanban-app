@@ -51,20 +51,35 @@ class CartaoRepository:
         return cartoes
 
     def atualizar(self, cartao: Cartao):
-        with closing(self._conectar()) as conexao:
-            with conexao:
-                cursor = conexao.cursor()
-                cursor.execute(
-                    """UPDATE CARTAO SET id_coluna = ?, id_raia = ?, id_user_responsavel = ?, 
-                       nome = ?, descricao = ?, prioridade = ?, data_limite = ?, 
-                       data_entrada_wip = ?, data_conclusao = ? WHERE id_cartao = ?""",
-                    (cartao.id_coluna, cartao.id_raia, cartao.id_user_responsavel, cartao.nome,
-                     cartao.descricao, cartao.prioridade, cartao.data_limite, 
-                     cartao.data_entrada_wip, cartao.data_conclusao, cartao.id_cartao)
-                )
+            with closing(self._conectar()) as conexao:
+                with conexao:
+                    cursor = conexao.cursor()
+                    cursor.execute(
+                        """UPDATE CARTAO SET id_coluna = ?, id_raia = ?, id_user_responsavel = ?, 
+                        nome = ?, descricao = ?, prioridade = ?, data_limite = ?, 
+                        data_criacao = ?, data_entrada_wip = ?, data_conclusao = ? WHERE id_cartao = ?""",
+                        (cartao.id_coluna, cartao.id_raia, cartao.id_user_responsavel, cartao.nome,
+                        cartao.descricao, cartao.prioridade, cartao.data_limite, 
+                        cartao.data_criacao, cartao.data_entrada_wip, cartao.data_conclusao, cartao.id_cartao)
+                    )
 
     def deletar(self, id_cartao: int):
         with closing(self._conectar()) as conexao:
             with conexao:
                 cursor = conexao.cursor()
                 cursor.execute("DELETE FROM CARTAO WHERE id_cartao = ?", (id_cartao,))
+
+    def listar_concluidos_por_projeto(self, id_proj: int) -> List[Cartao]:
+        """Busca todos os cartões concluídos pertencentes a um projeto (via colunas e quadros)."""
+        cartoes = []
+        with closing(self._conectar()) as conexao:
+            cursor = conexao.cursor()
+            cursor.execute("""
+                SELECT C.* FROM CARTAO C
+                JOIN COLUNA COL ON C.id_coluna = COL.id_coluna
+                JOIN QUADRO Q ON COL.id_quadro = Q.id_quadro
+                WHERE Q.id_proj = ? AND C.data_conclusao IS NOT NULL
+            """, (id_proj,))
+            for linha in cursor.fetchall():
+                cartoes.append(Cartao(*linha))
+        return cartoes
