@@ -1,8 +1,8 @@
 import customtkinter as ctk
-from views.main import populate_main_screen
-from views.cadastro import populate_register_screen
-from views.login import populate_login_screen
-from views.dashboard import populate_dashboard_screen
+from src.views.main import populate_main_screen
+from src.views.cadastro import populate_register_screen
+from src.views.login import populate_login_screen
+from src.views.dashboard import populate_dashboard_screen
 
 def show_frame(frame: ctk.CTkFrame) -> None:
     frame.tkraise()
