@@ -68,3 +68,22 @@ class CartaoRepository:
             with conexao:
                 cursor = conexao.cursor()
                 cursor.execute("DELETE FROM CARTAO WHERE id_cartao = ?", (id_cartao,))
+    
+    def listar_por_coluna_e_raia(self, id_coluna: int, id_raia: Optional[int]) -> List[Cartao]:
+        cartoes = []
+        with closing(self._conectar()) as conexao:
+            cursor = conexao.cursor()
+            if id_raia is None:
+                cursor.execute(
+                    "SELECT * FROM CARTAO WHERE id_coluna = ? AND id_raia IS NULL",
+                    (id_coluna,)
+                )
+            else:
+                cursor.execute(
+                    "SELECT * FROM CARTAO WHERE id_coluna = ? AND id_raia = ?",
+                    (id_coluna, id_raia)
+                )
+            for linha in cursor.fetchall():
+                cartoes.append(Cartao(*linha))
+        return cartoes
+    
