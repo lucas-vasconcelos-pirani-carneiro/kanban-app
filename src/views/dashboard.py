@@ -2,14 +2,18 @@ import customtkinter as ctk
 from src.repositories.usuario_repository import UsuarioRepository
 from src.repositories.projeto_repository import ProjetoRepository
 from src.repositories.membro_projeto_repository import MembroProjetoRepository
+from src.repositories.cartao_repository import CartaoRepository
 from src.services.usuario_service import UsuarioService
 from src.services.projeto_service import ProjetoService
-from src.views.quadros import carregar_quadros
 from src.services.membro_projeto_service import MembroProjetoService
+from src.services.metricas_service import KanbanMetricasService
+from src.views.quadros import carregar_quadros
 
 usuario_repository = UsuarioRepository()
 projeto_repository = ProjetoRepository()
 membro_projeto_repository = MembroProjetoRepository()
+cartao_repository = CartaoRepository()
+metricas_service = KanbanMetricasService(cartao_repository)
 usuario_service = UsuarioService(usuario_repository)
 projeto_service = ProjetoService(projeto_repository)
 membro_projeto_service = MembroProjetoService(membro_projeto_repository)
@@ -138,6 +142,7 @@ def add_card(frame_dashboard: ctk.CTkFrame, titulo_card: str, descricao: str = "
     )
     label_desc_card.pack(anchor="w", pady=(5, 0))
 
+    # Botão de Configurações (já existente)
     botao_config = ctk.CTkButton(
         frame_card,
         text="⚙️",
@@ -151,11 +156,95 @@ def add_card(frame_dashboard: ctk.CTkFrame, titulo_card: str, descricao: str = "
     )
     botao_config.place(relx=0.95, rely=0.05, anchor="ne")
 
+    # NOVO: Botão de Métricas
+    botao_metricas = ctk.CTkButton(
+        frame_card,
+        text="📊", # Ícone de gráfico
+        width=40,
+        height=40,
+        font=("Arial", 18),
+        fg_color="transparent",
+        text_color="#666666",
+        hover_color="#e0e0e0",
+        command=lambda: abrir_dialog_metricas(id_proj, titulo_card) # Nova função para abrir o dialog de métricas
+    )
+    # Posicione o botão de métricas ao lado do botão de config
+    # relx=0.85 para ficar um pouco à esquerda do botão de config
+    botao_metricas.place(relx=0.85, rely=0.05, anchor="ne")
+
+
     def on_card_click(event=None):
         click_card(titulo_card, id_proj, frame_dashboard)
 
     for widget in [frame_card, frame_interno, label_titulo_card, label_desc_card]:
         widget.bind("<Button-1>", on_card_click)
+
+def abrir_dialog_metricas(id_proj: int, nome_projeto: str) -> None:
+    dialog = ctk.CTkToplevel()
+    dialog.title(f"Métricas do Projeto: {nome_projeto}")
+    dialog.geometry("450x300")
+
+    largura_tela = dialog.winfo_screenwidth()
+    altura_tela = dialog.winfo_screenheight()
+    pos_x = int((largura_tela / 2) - (450 / 2))
+    pos_y = int((altura_tela / 2) - (300 / 2))
+    dialog.geometry(f"450x300+{pos_x}+{pos_y}")
+
+    ctk.CTkLabel(
+        dialog,
+        text=f"Métricas de Desempenho - {nome_projeto}",
+        font=("Arial", 16, "bold")
+    ).pack(pady=(20, 15))
+
+    try:
+        metricas = metricas_service.calcular_medias_projeto(id_proj)
+
+        total_cartoes = metricas["total_cartoes_entregues"]
+        lead_time_medio = metricas["lead_time_medio_dias"]
+        cycle_time_medio = metricas["cycle_time_medio_dias"]
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"Total de Cartões Concluídos: {total_cartoes}",
+            font=("Arial", 13)
+        ).pack(anchor="w", padx=30, pady=2)
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"Lead Time Médio: {lead_time_medio:.2f} dias",
+            font=("Arial", 13)
+        ).pack(anchor="w", padx=30, pady=2)
+
+        ctk.CTkLabel(
+            dialog,
+            text=f"Cycle Time Médio: {cycle_time_medio:.2f} dias",
+            font=("Arial", 13)
+        ).pack(anchor="w", padx=30, pady=2)
+
+    except ValueError as e:
+        ctk.CTkLabel(
+            dialog,
+            text=f"Erro ao carregar métricas: {e}",
+            font=("Arial", 13),
+            text_color="#FF5555"
+        ).pack(pady=20)
+    except Exception as e:
+        ctk.CTkLabel(
+            dialog,
+            text=f"Ocorreu um erro inesperado: {e}",
+            font=("Arial", 13),
+            text_color="#FF5555"
+        ).pack(pady=20)
+
+    ctk.CTkButton(
+        dialog,
+        text="Fechar",
+        fg_color="#888888",
+        hover_color="#666666",
+        command=dialog.destroy
+    ).pack(pady=(20, 15))
+
+    dialog.after(100, dialog.grab_set)
 
 def abrir_dialog_criar_projeto(frame_dashboard: ctk.CTkFrame) -> None:
     dialog = ctk.CTkToplevel()
