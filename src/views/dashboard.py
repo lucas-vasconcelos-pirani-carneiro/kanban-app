@@ -4,6 +4,7 @@ from src.repositories.projeto_repository import ProjetoRepository
 from src.repositories.membro_projeto_repository import MembroProjetoRepository
 from src.services.usuario_service import UsuarioService
 from src.services.projeto_service import ProjetoService
+from src.views.quadros import carregar_quadros
 from src.services.membro_projeto_service import MembroProjetoService
 
 usuario_repository = UsuarioRepository()
@@ -582,7 +583,19 @@ def obter_usuario_logado(frame_dashboard: ctk.CTkFrame):
     return frame_dashboard.usuario_logado
 
 def click_card(titulo_card: str, id_proj: int, frame_dashboard: ctk.CTkFrame) -> None:
-    print(f"Projeto clicado: {titulo_card} (id: {id_proj})")
+    projeto = ProjetoService(ProjetoRepository()).obter_projeto(id_proj)
+    frame_quadros = frame_dashboard.master.children.get('!ctkframe4')
+
+    # Navega para a tela de quadros carregando o projeto correto
+    frame_quadros = None
+    for widget in frame_dashboard.master.winfo_children():
+        if hasattr(widget, 'projeto_atual'):
+            frame_quadros = widget
+            break
+
+    if frame_quadros:
+        carregar_quadros(frame_quadros, projeto)
+        frame_dashboard.show_frame(frame_quadros)
 
 def click_config(titulo_card: str, id_proj: int, frame_dashboard: ctk.CTkFrame) -> None:
     abrir_config_projeto(titulo_card, id_proj, frame_dashboard)
