@@ -2,19 +2,30 @@ import sqlite3
 from contextlib import closing
 from typing import Optional
 from src.models.usuario import Usuario
+import os
+import sys
 
 class UsuarioRepository:
-    def __init__(self, db_path: str = "database/kanban.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            base_path = os.path.abspath(os.path.join(base_path, '..', '..'))
+
+        if db_path is None:
+            self.db_path = os.path.join(base_path, "database", "kanban.db")
+        else:
+            self.db_path = db_path
 
     def _conectar(self) -> sqlite3.Connection:
         conexao = sqlite3.connect(self.db_path)
-        conexao.execute("PRAGMA foreign_keys = ON;") # Ativação das chaves estrangeiras
+        conexao.execute("PRAGMA foreign_keys = ON;")
         return conexao
 
     def criar(self, usuario: Usuario) -> int:
         with closing(self._conectar()) as conexao:
-            with conexao: # Gerencia o commit/rollback automático
+            with conexao:
                 cursor = conexao.cursor()
                 cursor.execute(
                     "INSERT INTO USUARIO (nome, email, senha) VALUES (?, ?, ?)",

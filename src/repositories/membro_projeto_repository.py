@@ -2,10 +2,21 @@ import sqlite3
 from contextlib import closing
 from typing import List, Optional
 from src.models.membro_projeto import MembroProjeto
+import os
+import sys
 
 class MembroProjetoRepository:
-    def __init__(self, db_path: str = "database/kanban.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        if getattr(sys, 'frozen', False) and hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.dirname(os.path.abspath(__file__))
+            base_path = os.path.abspath(os.path.join(base_path, '..', '..'))
+
+        if db_path is None:
+            self.db_path = os.path.join(base_path, "database", "kanban.db")
+        else:
+            self.db_path = db_path
 
     def _conectar(self) -> sqlite3.Connection:
         conexao = sqlite3.connect(self.db_path)
