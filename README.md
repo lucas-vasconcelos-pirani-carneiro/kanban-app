@@ -9,7 +9,7 @@ Integrantes:
 
 ## Tecnologias
 - **Linguagem:** Python
-- **Interface gráfica:** PyQt6
+- **Interface gráfica:** CustomTkinter
 - **Banco de dados:** SQLite 3, via módulo sqlite3 nativo do Python.
 - Tranformar em **Executável:** PyInstaller
 
@@ -17,7 +17,7 @@ Integrantes:
 
 O projeto adota uma arquitetura em camadas inspirada no padrão MVC:
 
-- **View:** Telas e componentes da interface gráfica (PyQt6)
+- **View:** Telas e componentes da interface gráfica (CustomTkinter)
 - **Controller:** Recebe eventos da View, valida entradas e aciona os Services
 - **Service:** Contém as regras de negócio (ex: cálculo de métricas Kanban, validação de WIP limit)
 - **Repository:** Responsável pelo acesso ao banco de dados (queries SQL via sqlite3)
