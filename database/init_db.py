@@ -1,18 +1,21 @@
+# database/init_db.py
 import sqlite3
 import os
+from src.path_config import get_db_path, get_sql_path
 
 def inicializar_banco():
-    os.makedirs("database", exist_ok=True)
-    conexao = sqlite3.connect("database/kanban.db")
-    cursor = conexao.cursor()
+    db_path = get_db_path()
+    sql_path = get_sql_path()
 
-    with open("database/SQLite-2.sql", "r") as f:
-        schema = f.read()
+    # Só cria as tabelas se o arquivo não existir ou estiver vazio
+    if not os.path.exists(db_path) or os.path.getsize(db_path) == 0:
+        conexao = sqlite3.connect(db_path)
+        cursor = conexao.cursor()
 
-    cursor.executescript(schema)
-    conexao.commit()
-    conexao.close()
-    print("Banco de dados inicializado com sucesso.")
+        with open(sql_path, "r", encoding="utf-8") as f:
+            schema = f.read()
 
-if __name__ == "__main__":
-    inicializar_banco()
+        cursor.executescript(schema)
+        conexao.commit()
+        conexao.close()
+        print(f"Banco de dados inicializado em: {db_path}")
