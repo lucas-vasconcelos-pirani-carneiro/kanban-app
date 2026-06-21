@@ -1,6 +1,12 @@
 # KanbanApp
 Aplicação desktop de gerenciamento de projetos via método Kanban, desenvolvida como trabalho prático da disciplina de Engenharia de Software do Professor Fernando Chacon.
 
+Integrantes:
+- EDUARDO PEREIRA DE SOUSA  - 231018937
+- LUCAS VASCONCELOS PIRANI CARNEIRO - 251031785 
+- MARCELO MARQUES RODRIGUES - 221018960
+
+
 ## Tecnologias
 - **Linguagem:** Python
 - **Interface gráfica:** PyQt6
@@ -33,7 +39,7 @@ O projeto adota uma arquitetura em camadas inspirada no padrão MVC:
 │   │   ├── 📂 interfaces     # Contratos dos services (ABCs)
 │   │   └── ...               # Implementações concretas
 │   ├── 📂 controllers        # Intermediação entre View e Service
-│   ├── 📂 views              # Telas e componentes PyQt6
+│   ├── 📂 views              # Telas e componentes CustomTkinter 
 │   └── app.py                # Ponto de entrada da aplicação
 ├── 📂 tests
 │   ├── 📂 mocks              # Repositórios falsos para testes
