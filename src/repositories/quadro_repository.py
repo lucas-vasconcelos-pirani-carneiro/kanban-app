@@ -2,10 +2,12 @@ import sqlite3
 from contextlib import closing
 from typing import List, Optional
 from src.models.quadro import Quadro
+from src.path_config import get_db_path # Import the function
 
 class QuadroRepository:
-    def __init__(self, db_path: str = "database/kanban.db"):
-        self.db_path = db_path
+    def __init__(self, db_path: str = None):
+        # Use the dynamic path if no specific path is provided
+        self.db_path = db_path if db_path else get_db_path()
 
     def _conectar(self) -> sqlite3.Connection:
         conexao = sqlite3.connect(self.db_path)

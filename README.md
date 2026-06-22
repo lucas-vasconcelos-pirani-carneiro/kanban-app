@@ -28,8 +28,9 @@ O projeto adota uma arquitetura em camadas inspirada no padrão MVC:
 ```plaintext
 📂 kanban
 ├── 📂 database
-│   ├── script.sql            # Script de criação das tabelas
-│   └── kanban.db             # Arquivo do banco de dados SQLite
+│   ├── SQLite-2.sql          # Script de criação das tabelas
+│   ├── init_db.py            # Script de inicialização do banco
+│   └── kanban.db             # Arquivo do banco de dados SQLite (Gerado automaticamente)
 ├── 📂 src
 │   ├── 📂 models             # Classes de domínio (entidades)
 │   ├── 📂 repositories
@@ -40,13 +41,14 @@ O projeto adota uma arquitetura em camadas inspirada no padrão MVC:
 │   │   └── ...               # Implementações concretas
 │   ├── 📂 controllers        # Intermediação entre View e Service
 │   ├── 📂 views              # Telas e componentes CustomTkinter 
-│   └── app.py                # Ponto de entrada da aplicação
+│   └── path_config.py        # Gerenciamento de caminhos dinâmicos (PyInstaller vs Script)
 ├── 📂 tests
 │   ├── 📂 mocks              # Repositórios falsos para testes
 │   ├── 📂 services           # Testes das regras de negócio
 │   ├── 📂 repositories       # Testes de acesso ao banco
 │   └── 📂 controllers        # Testes dos controllers
 ├── 📂 docs                   # Artefatos do trabalho (PDFs)
+├── main.py                   # Ponto de entrada da aplicação
 ├── requirements.txt
 └── README.md
 ```
@@ -72,10 +74,11 @@ pip install -r requirements.txt
 
 2. Execute:
 ```python
-python src/app.py`
+python main.py`
 ```
 
 ## Como gerar o executável
 ```python
-pyinstaller --onefile src/app.py
+pyinstaller --onefile --add-data "database/SQLite-2.sql;database" main.py
 ```
+Se for gerar o executável no Linux ou Mac, troque o ponto e vírgula ; por dois pontos : no comando acima.

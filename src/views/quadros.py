@@ -191,8 +191,8 @@ def abrir_dialog_criar_quadro(frame_quadros: ctk.CTkFrame) -> None:
     campo_nome.pack(pady=(0, 10))
 
     ctk.CTkLabel(dialog, text="Colunas iniciais (separadas por vírgula)", font=("Arial", 13, "bold")).pack(pady=(0, 5))
-    campo_colunas = ctk.CTkEntry(dialog, placeholder_text="Ex: A Fazer, Fazendo, Feito", width=320)
-    campo_colunas.insert(0, "A Fazer, Fazendo, Feito")
+    campo_colunas = ctk.CTkEntry(dialog, placeholder_text="Ex: Backlog, WIP, Concluido", width=320)
+    campo_colunas.insert(0, "Backlog, WIP, Concluido")
     campo_colunas.pack(pady=(0, 10))
 
     label_erro = ctk.CTkLabel(dialog, text="", text_color="#FF5555", font=("Arial", 11))
